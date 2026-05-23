@@ -51,7 +51,7 @@ export default function ConfirmationPage() {
     setIsProcessing(true)
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: authEmail.trim(), 
       password: authPassword,
     })
 

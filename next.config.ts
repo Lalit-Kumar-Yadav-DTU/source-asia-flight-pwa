@@ -7,7 +7,7 @@ const nextConfig = {
 
 export default withPWA({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development', // Disable in dev mode to keep hot-reloading fast
+  disable: process.env.NODE_ENV === 'development', 
   register: true,
   skipWaiting: true,
   buildExcludes: [/middleware-manifest\.json$/],

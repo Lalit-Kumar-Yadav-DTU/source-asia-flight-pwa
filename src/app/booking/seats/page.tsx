@@ -47,12 +47,12 @@ export default function SeatsPage() {
 
     async function fetchSeats() {
       try {
-        console.log(`📡 Requesting seat layout structures from Supabase cloud for Flight ID: ${selectedFlight.id}...`)
+        console.log(`📡 Requesting seat layout structures from Supabase cloud for Flight ID: ${selectedFlight?.id}...`)
         
         const { data, error } = await supabase
           .from('seats')
           .select('*')
-          .eq('flight_id', selectedFlight.id)
+          .eq('flight_id', selectedFlight?.id)
           .order('seat_number', { ascending: true })
         
         if (error) {
@@ -77,14 +77,14 @@ export default function SeatsPage() {
 
     // Listen to live Supabase updates on the seats table 
     const seatChannel = supabase
-      .channel(`live-seats-${selectedFlight.id}`)
+      .channel(`live-seats-${selectedFlight?.id}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'seats',
-          filter: `flight_id=eq.${selectedFlight.id}`,
+          filter: `flight_id=eq.${selectedFlight?.id}`,
         },
         (payload) => {
           const updatedSeat = payload.new as Seat
@@ -120,7 +120,7 @@ export default function SeatsPage() {
   const columns = ['A', 'B', 'C', 'D']
 
   // Multi-Passenger Calculation parameters
-  const basePricePerPassenger = Number(selectedFlight.base_price)
+  const basePricePerPassenger = Number(selectedFlight?.base_price)
   const totalBaseAirfare = basePricePerPassenger * passengerCount
   const totalExtraFees = selectedSeats.reduce((sum, s) => sum + Number(s.extra_fee), 0)
   const totalPrice = totalBaseAirfare + totalExtraFees
