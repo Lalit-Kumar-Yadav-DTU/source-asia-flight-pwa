@@ -1,0 +1,24 @@
+{
+  "name": "Source Asia Airways",
+  "short_name": "SA Airways",
+  "description": "Premium real-time flight management application matrix.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/2563eb/white/png?text=SA",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/512x512/2563eb/white/png?text=SA+Airways",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
