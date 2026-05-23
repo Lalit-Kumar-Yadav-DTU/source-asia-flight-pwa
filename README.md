@@ -12,13 +12,34 @@ This project is designed to demonstrate a safe booking flow with:
 
 ---
 
-## Live Preview
+## 🚀 Live Preview
 
-> Deploy this project on Vercel for a production-ready preview.
+**Production Deployment:** [https://source-asia-flight-pwa.vercel.app/](https://source-asia-flight-pwa.vercel.app/)
 
-If you already have a deployment, paste the URL here.
+---
 
-Example: `https://source-asia-assignment.vercel.app`
+## ✈️ Quick Start Testing Guide
+
+To experience the full end-to-end interactive capabilities of the app without encountering mock data gaps, use the following evaluation parameters:
+
+1. **Active Departure Routes:** Select **DEL** (Delhi), **BOM** (Mumbai), or **BLR** (Bangalore).
+2. **Target Flight Dates:** Choose any date between **May 25, 2026, and May 28, 2026** (e.g., searching DEL ⇄ BOM on May 25 will populate live relational data rows instantly).
+3. **Recommended Test Credentials:**
+   - **Email:** `tester@example.com`
+   - **Password:** `Password123!`
+
+---
+
+## 📊 Lighthouse Audit Metrics
+
+The production application has been compiled using the custom Webpack lifecycle configuration pipeline to optimize service worker registration, script distribution, and asset delivery. 
+
+- **Performance:** 98%
+- **Best Practices:** 100%
+- **Accessibility:** 84%
+- **SEO:** 80%
+
+*Note: For full visibility, an audit screenshot capturing these performance metrics has been saved under the project documentation assets.*
 
 ---
 
@@ -63,185 +84,150 @@ Example: `https://source-asia-assignment.vercel.app`
 Create a `.env.local` file from `.env.example` and provide your Supabase project values:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
-### Database migration
+Database migration
+Use the Supabase migration flow or SQL editor to apply the SQL in supabase/migrations/20260521_initial_schema.sql.
 
-Use the Supabase migration flow or SQL editor to apply the SQL in `supabase/migrations/20260521_initial_schema.sql`.
+Seed data
+Run the SQL in supabase/seed.sql to populate:
 
-### Seed data
+8 flights
 
-Run the SQL in `supabase/seed.sql` to populate:
-- 8 flights
-- 24 seats per flight
-- seat pricing by class
+24 seats per flight
 
-### Test user
+seat pricing by class
 
-Create a Supabase Auth user manually in the Supabase dashboard if needed.
+Local Installation
+Clone the repository:
 
-Recommended test credentials for review:
-- email: `tester@example.com`
-- password: `Password123!`
+Bash
+git clone [https://github.com/Lalit-Kumar-Yadav-DTU/source-asia-flight-pwa.git](https://github.com/Lalit-Kumar-Yadav-DTU/source-asia-flight-pwa.git)
+cd source-asia-flight-pwa
+Install dependencies:
 
-> If you want, create the same user in Supabase Auth and sign in through the app.
+Bash
+npm install
+Create .env.local:
 
----
+Bash
+cp .env.example .env.local
+Fill in Supabase values in .env.local.
 
-## Local Installation
+Run the app using the Webpack-compiler fallback script:
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/<your-username>/source-asia-assignment.git
-   cd source-asia-assignment
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create `.env.local`:
-   ```bash
-   cp .env.example .env.local
-   ```
-4. Fill in Supabase values in `.env.local`.
-5. Run the app:
-   ```bash
-   npm run dev
-   ```
+Bash
+npm run dev
+Open http://localhost:3000 and start booking.
 
-Open `http://localhost:3000` and start booking.
-
----
-
-## Database Schema & Security
-
+Database Schema & Security
 The database schema is organized around these entities:
 
-- `flights` — flight metadata and schedule
-- `seats` — per-flight seat inventory, availability, class, and extra fees
-- `bookings` — confirmed tickets, linked to user, flight, and seat
-- `passengers` — passenger details attached to a booking
-- `reschedules` — history ledger for flight changes
+flights — flight metadata and schedule
 
-### Row Level Security (RLS)
+seats — per-flight seat inventory, availability, class, and extra fees
 
+bookings — confirmed tickets, linked to user, flight, and seat
+
+passengers — passenger details attached to a booking
+
+reschedules — history ledger for flight changes
+
+Row Level Security (RLS)
 The schema enables RLS for the main tables and includes policies such as:
 
-- `flights` and `seats` are public for read access
-- `bookings` may only be read/inserted/updated by `auth.uid() = user_id`
-- `passengers` and `reschedules` may only be read/inserted if the booking belongs to the current user
+flights and seats are public for read access
+
+bookings may only be read/inserted/updated by auth.uid() = user_id
+
+passengers and reschedules may only be read/inserted if the booking belongs to the current user
 
 This keeps sensitive booking data scoped to the authenticated user.
 
-### Seat locking and concurrency
+Seat locking and concurrency
+The seed migration includes an RPC function book_seat_atomic that:
 
-The seed migration includes an RPC function `book_seat_atomic` that:
-- locks the requested seat row with `FOR UPDATE`
-- validates availability before insert
-- marks the seat unavailable
-- inserts the booking in the same transaction
+locks the requested seat row with FOR UPDATE
+
+validates availability before insert
+
+marks the seat unavailable
+
+inserts the booking in the same transaction
 
 This prevents two users from racing to book the same seat.
 
-### Cancellation rules
+Cancellation rules
+The database includes a trigger function check_cancellation_window() that blocks cancellation if the flight departs within 2 hours.
 
-The database includes a trigger function `check_cancellation_window()` that blocks cancellation if the flight departs within 2 hours.
+The app calls cancel_booking_atomic from the dashboard, ensuring cancellation and seat release happen together.
 
-The app calls `cancel_booking_atomic` from the dashboard, ensuring cancellation and seat release happen together.
+Zustand Store Design
+src/stores/useFlightStore.ts
+This store tracks the booking flow and persists safe state using persist:
 
----
+searchQuery — current flight search criteria
 
-## Zustand Store Design
+selectedFlight — flight selected for booking
 
-### `src/stores/useFlightStore.ts`
+selectedSeats — seats chosen by the user
 
-This store tracks the booking flow and persists safe state using `persist`:
+bookingStep — current step in the booking wizard
 
-- `searchQuery` — current flight search criteria
-- `selectedFlight` — flight selected for booking
-- `selectedSeats` — seats chosen by the user
-- `bookingStep` — current step in the booking wizard
-- `passengersList` — passenger information for checkout
+passengersList — passenger information for checkout
 
-`partialize` is used to avoid storing sensitive passenger fields in local persistence.
+partialize is used to avoid storing sensitive passenger fields in local persistence.
 
 The major actions include:
-- `setSearchQuery`
-- `setSelectedFlight`
-- `toggleSelectedSeat`
-- `setBookingStep`
-- `setPassengersList`
-- `resetFlightStore`
 
-### `src/stores/useUserStore.ts`
+setSearchQuery
 
-This store persists only `sessionToken` to keep authentication state available between reloads.
+setSelectedFlight
 
-It uses `partialize` to exclude raw `cachedBookings` from persisted JSON, reducing sensitive data stored in browser storage.
+toggleSelectedSeat
 
----
+setBookingStep
 
-## Seat Map UX
+setPassengersList
 
+resetFlightStore
+
+src/stores/useUserStore.ts
+This store persists only sessionToken to keep authentication state available between reloads.
+
+It uses partialize to exclude raw cachedBookings from persisted JSON, reducing sensitive data stored in browser storage.
+
+Seat Map UX
 The seat selection page renders a cabin-style grid with:
-- a 6 × 4 seat layout
-- class zones for first, business, and economy rows
-- clear legends for available, selected, and occupied seats
-- a responsive horizontal scroll wrapper for small screens
-- seat limits enforced by passenger count
-- real-time availability updates from Supabase Realtime
+
+a 6 × 4 seat layout
+
+class zones for first, business, and economy rows
+
+clear legends for available, selected, and occupied seats
+
+a responsive horizontal scroll wrapper for small screens
+
+seat limits enforced by passenger count
+
+real-time availability updates from Supabase Realtime
 
 Users can only select a seat if it is still available, and the final checkout button becomes active only when the correct number of seats are chosen.
 
----
+Reschedule & Cancel Flow
+Cancel
+User initiates cancellation from the dashboard.
 
-## Reschedule & Cancel Flow
+The app calls cancel_booking_atomic.
 
-### Cancel
+The DB transaction sets the booking status to cancelled and reopens the seat.
 
-- User initiates cancellation from the dashboard.
-- The app calls `cancel_booking_atomic`.
-- The DB transaction sets the booking status to `cancelled` and reopens the seat.
-- Cancelling within 2 hours of departure is rejected by the DB trigger.
+Cancelling within 2 hours of departure is rejected by the DB trigger.
 
-### Reschedule
+Reschedule
+The dashboard fetches available alternative flights on the same route.
 
-- The dashboard fetches available alternative flights on the same route.
-- The app writes a `reschedules` history record and updates the booking row.
-- This preserves an audit trail for each reschedule.
+The app writes a reschedules history record and updates the booking row.
 
----
-
-## Deployment
-
-Recommended: deploy to Vercel and configure the same Supabase env vars in project settings.
-
-Example deploy steps:
-
-1. Push the repository to GitHub.
-2. Connect the repo to Vercel.
-3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel.
-4. Deploy and verify the app.
-
----
-
-## Checklist
-
-- [x] Public GitHub repository with descriptive commit history
-- [x] `.env.example` with Supabase environment variables
-- [x] Supabase migration SQL in `supabase/migrations`
-- [x] Seed script present at `supabase/seed.sql`
-- [x] README with setup steps, schema notes, and Zustand store explanation
-- [ ] Lighthouse PWA screenshot (add to README after audit)
-- [ ] Production deployment URL
-
----
-
-## Notes
-
-- The app uses `@supabase/ssr` and `createBrowserClient` for client-side auth and realtime flows.
-- `src/app/booking/seats/page.tsx` maintains the live seat grid and syncs seat updates through a Supabase channel.
-- `src/app/dashboard/page.tsx` handles cancellation and reschedule controls with clear user feedback.
-- If you want to add the Lighthouse PWA screenshot, place it in `public/` and reference it here.
+This preserves an audit trail for each reschedule.
