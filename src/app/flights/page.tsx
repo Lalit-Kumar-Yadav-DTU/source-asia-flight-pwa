@@ -1,3 +1,4 @@
+
 import { createClient } from '@/utils/supabase/server'
 import { Flight } from '@/types'
 import { Plane, Calendar, MapPin, Clock } from 'lucide-react'
@@ -61,10 +62,19 @@ export default async function FlightsResultsPage({
         )}
 
         {!flights || flights.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-sm">
+          <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-sm max-w-2xl mx-auto">
             <Plane className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-600 font-medium text-lg">No flights found matching your route criteria.</p>
-            <p className="text-slate-400 text-sm mt-1">Try testing with our seeded routes: DEL to BOM, or BOM to BLR.</p>
+            
+            {/* Elegant Fallback Guard for Date Limitations */}
+            <div className="mt-5 p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 text-left max-w-md mx-auto">
+              <p className="font-bold flex items-center gap-1.5 mb-1 text-amber-900">
+                ⚠️ Seed Schedule Interval Constraint
+              </p>
+              <p className="leading-relaxed">
+                Database matrices are operational for schedules between <span className="font-bold">May 25, 2026</span> and <span className="font-bold">May 28, 2026</span> (e.g., matching pairs like <strong>DEL ⇄ BOM</strong> or <strong>BOM ⇄ BLR</strong> populated inside this window will invoke dynamic seat selections).
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -72,7 +82,6 @@ export default async function FlightsResultsPage({
               const depTime = new Date(flight.departs_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               const arrTime = new Date(flight.arrives_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               
-              // NEW FORMATTER: Grabs the clean date out of the timestamp
               const flightDate = new Date(flight.departs_at).toLocaleDateString('en-US', {
                 weekday: 'short',
                 month: 'short',
@@ -142,3 +151,4 @@ export default async function FlightsResultsPage({
     </main>
   )
 }
+
